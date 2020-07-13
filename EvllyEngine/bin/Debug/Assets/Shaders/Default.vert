@@ -10,7 +10,7 @@ uniform mat4 world;
 uniform mat4 view;
 uniform mat4 projection;
 
-void main(void)
+void main()
 {
 	gl_Position = vec4(position, 1.0) * world * view * projection;
 

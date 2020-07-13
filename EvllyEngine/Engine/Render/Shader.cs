@@ -24,6 +24,14 @@ namespace EvllyEngine
             _shaderProgram = CompileShader(ShaderName);
         }
 
+        public Shader(string ShaderName, string Texture, string textureExtensio)
+        {
+            _uniformLocations = new Dictionary<string, int>();
+            _Texture = new Texture(Texture, textureExtensio);
+
+            _shaderProgram = CompileShader(ShaderName);
+        }
+
         public void Delete()
         {
             _Texture.Delete();

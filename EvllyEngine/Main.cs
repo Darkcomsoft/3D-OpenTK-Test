@@ -11,7 +11,7 @@ namespace EvllyEngine
     {
         public static void Main()
         {
-            using (Engine game = new Engine(1000, 600, "EvllyEngine FPS: 0"))
+            using (Engine game = new Engine(1280, 720, "EvllyEngine "))
             {
                 //Run takes a double, which is how many frames per second it should strive to reach.
                 //You can leave that out and it'll just update as fast as the hardware will allow it.

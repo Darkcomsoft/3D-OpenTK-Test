@@ -8,6 +8,7 @@ using System.Drawing;
 using OpenTK.Graphics.OpenGL;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 using System.Drawing.Imaging;
+using System.Xml;
 
 namespace EvllyEngine
 {
@@ -36,14 +37,27 @@ namespace EvllyEngine
                 Debug.LogError("Texture Files Can't be found At: " + string.Concat(path, file, "." + extensio));
                 throw new Exception("Texture Files Can't be found At: " + string.Concat(path, file, "." + extensio));
             }
-
+           
             using (var image = new Bitmap(string.Concat(path, file, "." + extensio)))
             {
                 image.RotateFlip(RotateFlipType.Rotate180FlipNone);
-                var data = image.LockBits( new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                var data = image.LockBits( new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
 
                 return new ImageFile(data.Scan0, data.Width, data.Height);
             }
+        }
+
+        public static Mesh LoadModel(string path, string file)
+        {
+            if (!File.Exists(string.Concat(path, file, ".dae")))
+            {
+                Debug.LogError("Model(COLLADA) Files Can't be found At: " + string.Concat(path, file, ".dae"));
+                throw new Exception("Model(COLLADA) Files Can't be found At: " + string.Concat(path, file, ".dae"));
+            }
+
+            ColladaProcessor processor = new ColladaProcessor(string.Concat(path, file, ".dae"));
+
+            return processor.Load();
         }
     }
 }

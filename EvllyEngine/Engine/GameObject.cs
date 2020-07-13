@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,20 +61,23 @@ namespace EvllyEngine
 
         private void StartObject()
         {
-
+            Engine.Instance.UpdateFrame += Update;
+            Engine.Instance.DrawUpdate += Draw;
         }
+
+        public float rotation;
+        public float Speed = 50;
 
         /// <summary>
         /// Script UpdateFreame
         /// </summary>
-        public void Update(FrameEventArgs e)
+        public void Update(object obj,FrameEventArgs e)
         {
             if (_camera != null)
             {
                 _camera.Update((float)e.Time);
             }
         }
-
 
         public void Draw(FrameEventArgs e)
         {
@@ -85,6 +89,8 @@ namespace EvllyEngine
 
         public void OnDestroy()
         {
+            Engine.Instance.UpdateFrame -= Update;
+            Engine.Instance.DrawUpdate -= Draw;
             if (_MeshRender != null)
             {
                 _MeshRender.OnDestroy();
@@ -119,6 +125,12 @@ namespace EvllyEngine
             Engine.Instance.AddObject(obj);
             return obj;
         }
+        public static GameObject Instantiate(Vector3 position, Quaternion rotation, int scene)
+        {
+            GameObject obj = new GameObject(position, rotation, scene);
+            Engine.Instance.AddObject(obj);
+            return obj;
+        }
         public static GameObject Instantiate(Transform parent)
         {
             GameObject obj = new GameObject(parent);
@@ -145,7 +157,7 @@ namespace EvllyEngine
         }
         public MeshRender AddMeshRender()
         {
-            MeshRender meshrender = new MeshRender(this);
+            MeshRender meshrender = new MeshRender(this, AssetsManager.LoadModel("Assets/Models/", "Cube"), new Shader("Default", "NewGrassTeste", "png"));
             _MeshRender = meshrender;
             return _MeshRender;
         }

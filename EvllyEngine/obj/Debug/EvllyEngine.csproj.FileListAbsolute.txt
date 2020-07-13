@@ -17,3 +17,5 @@ C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\bin\Debug\System.Buffers
 C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\bin\Debug\System.Memory.xml
 C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\bin\Debug\System.Numerics.Vectors.xml
 C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\bin\Debug\BulletSharp.dll
+C:\Users\estev\Documents\GitHub\EvllyEngine\EvllyEngine\obj\Debug\EvllyEngine.exe.config

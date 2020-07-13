@@ -17,11 +17,11 @@ namespace EvllyEngine
         private int IBO;
         private int VAO;
 
-        public MeshRender(GameObject obj)
+        public MeshRender(GameObject obj, Mesh mesh, Shader shader)
         {
             gameObject = obj;
-            _mesh = new Mesh();
-            _shader = new Shader("Default");
+            _mesh = mesh;
+            _shader = shader;
 
             if (_shader != null)
             {
@@ -58,6 +58,9 @@ namespace EvllyEngine
 
         public void Draw(FrameEventArgs e)
         {
+            GL.BindVertexArray(VAO);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, IBO);
+
             _shader.GetTexture.Use();
             _shader.Use();
 
@@ -65,8 +68,6 @@ namespace EvllyEngine
             _shader.SetMatrix4("view", Camera.Main.viewMatrix);
             _shader.SetMatrix4("projection", Camera.Main._projection);
 
-            GL.BindVertexArray(VAO);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, IBO);
             GL.DrawElements(BeginMode.Triangles, _mesh._indices.Length, DrawElementsType.UnsignedInt, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindVertexArray(0);

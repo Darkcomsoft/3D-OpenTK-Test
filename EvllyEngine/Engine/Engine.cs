@@ -11,6 +11,7 @@ using OpenTK.Input;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Runtime.InteropServices;
 
 namespace EvllyEngine
 {
@@ -35,49 +36,44 @@ namespace EvllyEngine
 
         public Engine(int width, int height, string title) : base(width, height, GraphicsMode.Default, title) { Instance = this; }
 
+        public Action<FrameEventArgs> DrawUpdate;
+
         protected override void OnLoad(EventArgs e)
         {
             //Load the Window/pre Graphics Stuff//
-            GL.Viewport(Width / 2, Height / 2, Width, Height);
-            GL.ClearColor(Color4.Aqua);
+            VSync = VSyncMode.Off;
+            WindowBorder = WindowBorder.Fixed;
+
+            GL.ClearColor(Color4.DeepSkyBlue);
             GL.Enable(EnableCap.DepthTest);
+            GL.Viewport(0, 0, Width, Height);
             //Load the Engine Stuff//
             _assetsManager = new AssetsManager();
             SceneManager.LoadDontDestroyScene();
             SceneManager.LoadDefaultScene();
             
-            for (int i = 0; i < 3; i++)
+            GameObject camobj = GameObject.Instantiate("Camera", 1);
+            camobj.AddCamera();
+
+            for (int x = 0; x < 2; x++)
             {
-                if (i == 0)
+                if (x == 0)
                 {
-                    GameObject obj = GameObject.Instantiate("Camera: " + i, 1);
-                    obj.AddCamera();
+                    GameObject obj = GameObject.Instantiate(new Vector3(x, 0, 0), Quaternion.Identity, 1);
+                    obj.AddMeshRender(new MeshRender(obj, AssetsManager.LoadModel("Assets/Models/", "Cube"), new Shader("Default", "NewGrassTeste", "png")));
                 }
                 else
                 {
-                    GameObject obj = GameObject.Instantiate("Mesh: " + i, 1);
-                    obj.AddMeshRender();
+                    GameObject obj = GameObject.Instantiate(new Vector3(x, 0, 0), Quaternion.Identity, 1);
+                    obj.AddMeshRender(new MeshRender(obj, AssetsManager.LoadModel("Assets/Models/", "Cube2"), new Shader("Default", "RockBrick_01", "png")));
                 }
             }
 
             base.OnLoad(e);
         }
 
-        float rotation = 0;
-
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            for (int i = 0; i < GameObjects.Count; i++)
-            {
-                GameObjects[i].Update(e);
-            }
-
-            var curMousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
-            if (curMousePos != Point.Zero)
-            {
-                Camera.Main.mouseVector = (curMousePos - Point.Zero).ToVector2();
-            }
-
             if (Input.GetKeyDown(Key.F11))
             {
                 if (WindowState == WindowState.Fullscreen)
@@ -90,27 +86,10 @@ namespace EvllyEngine
                 }
             }
 
-            if (Input.GetKeyDown(Key.P))
-            {
-                if (Camera.Main.MouseLook)
-                {
-                    Camera.Main.MouseLook = false;
-                    CursorVisible = true;
-                }
-                else
-                {
-                    Camera.Main.MouseLook = true;
-                    CursorVisible = false;
-                }
-            }
-
             if (Input.GetKeyDown(Key.Escape))
             {
                 Exit();
             }
-
-            GameObjects[2]._transform._Rotation = new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(rotation * 50), 0);
-            rotation++;
 
             Tick++;
             base.OnUpdateFrame(e);
@@ -120,13 +99,8 @@ namespace EvllyEngine
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             FPS = (int)(1f / e.Time);
-            Title = "EvllyEngine FPS: " + FPS + " Tick: " + Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform._Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform._Rotation.ToString();
-
-            for (int i = 0; i < GameObjects.Count; i++)
-            {
-                GameObjects[i].Draw(e);
-            }
-
+            //Title = "EvllyEngine FPS: " + FPS + " Tick: " + Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform._Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform._Rotation.ToString();
+            DrawUpdate.Invoke(e);
             SwapBuffers();
             base.OnRenderFrame(e);
         }

@@ -1,5 +1,6 @@
 ﻿using OpenTK;
 using OpenTK.Input;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace EvllyEngine
 
             gameObject._transform._Position = new Vector3(0,0,-3);
             gameObject._transform._Rotation = new Quaternion(0,0,0,0);
-            _aspectRatio = Engine.Instance.Width / Engine.Instance.Height;
+            _aspectRatio = (float)Engine.Instance.Width / (float)Engine.Instance.Height;
 
             _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(_fildOfView), _aspectRatio, _nearPlane, _farPlane);
 
@@ -52,6 +53,7 @@ namespace EvllyEngine
 
         public void Update(float time)
         {
+            _aspectRatio = (float)Engine.Instance.Width / (float)Engine.Instance.Height;
             _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(_fildOfView), _aspectRatio, _nearPlane, _farPlane);
 
             Vector3 cameraTarget = Vector3.Zero;
@@ -62,6 +64,26 @@ namespace EvllyEngine
 
             var moveVector = new Vector3(0, 0, 0);
             MouseState ms = Mouse.GetState();
+
+            var curMousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
+            if (curMousePos != Point.Zero)
+            {
+                mouseVector = (curMousePos - Point.Zero).ToVector2();
+            }
+
+            if (Input.GetKeyDown(Key.P))
+            {
+                if (MouseLook)
+                {
+                    MouseLook = false;
+                    Engine.Instance.CursorVisible = true;
+                }
+                else
+                {
+                    MouseLook = true;
+                    Engine.Instance.CursorVisible = false;
+                }
+            }
 
             if (Input.GetKey(Key.W))
             {
@@ -89,6 +111,14 @@ namespace EvllyEngine
                 moveVector.Y += MoveSpeed;
             }
 
+            if (Input.GetKey(Key.ShiftLeft))
+            {
+                MoveSpeed = 3 * 5;
+            }
+            else
+            {
+                MoveSpeed = 3;
+            }
 
             if (MouseLook)
             {
@@ -117,7 +147,6 @@ namespace EvllyEngine
 
             AddToCameraPosition(moveVector * (float)time);
             UpdateViewMatrix();
-
 		}
 
         private void AddToCameraPosition(Vector3 moveVector)

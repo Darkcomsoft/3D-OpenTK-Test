@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
 
 namespace EvllyEngine
 {
@@ -55,6 +56,14 @@ namespace EvllyEngine
         {
             _vertices = vertices;
             _indices = indices;
+        }
+
+        public Mesh(float[] vertices, Vector3[] normals, float[] textures, float[] colors, int[] indices)
+        {
+            _vertices = vertices;
+            _indices = indices;
+            _texCoords = textures;
+            _Colors = colors;
         }
     }
 }

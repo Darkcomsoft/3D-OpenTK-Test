@@ -1,7 +1,9 @@
 ﻿using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -94,7 +96,6 @@ namespace EvllyEngine
                 Debug.LogError("This Scene isnt Loaded!");
             }
         }
-
         private static void UnloadLast()
         {
             if (_Scenes.TryGetValue(_LastSceneLoaded, out Scene scene) && _LastSceneLoaded != -1)
@@ -108,7 +109,6 @@ namespace EvllyEngine
                 Debug.LogError("This Scene isnt Loaded!");
             }
         }
-
         /// <summary>
         /// Default Scene is a default/empty scene, for engine do stuff, and when no have scene loaded!
         /// </summary>
@@ -117,13 +117,28 @@ namespace EvllyEngine
             _Scenes.Add(1, new Scene(1, "EngineDefaultScene"));
             _LastSceneLoaded = 1;
         }
-
         /// <summary>
         /// DontDestroy scene is All objects instantiated in this with a Dontdestroyonload, when load and unlaod a scene they dont be destroyed!
         /// </summary>
         public static void LoadDontDestroyScene()
         {
             _Scenes.Add(0, new Scene(0, "DontDestroyOnLoad"));
+        }
+
+        public static Scene LoadFileScene()
+        {
+
+            return null;
+        }
+
+        public static bool SaveFileScene(Scene scene)
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Create(string.Concat("EditorData", scene._SceneName, ".evs"));
+
+            bf.Serialize(file, scene);
+            file.Close();
+            return false;
         }
     }
 }
