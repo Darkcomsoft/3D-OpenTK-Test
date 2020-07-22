@@ -19,10 +19,8 @@ namespace EvllyEngine
         public PixelFormat _PixelFormat = PixelFormat.Bgra;
 
 
-        public Texture(string TextureName, string FileExtension)
+        public Texture(ImageFile imageData)
         {
-            ImageFile imageData = AssetsManager.LoadImage("Assets/Texture/", TextureName, FileExtension);
-
             _Width = imageData._width;
             _Height = imageData._height;
 
@@ -32,13 +30,13 @@ namespace EvllyEngine
 
             GL.TexImage2D(_TextureTarget, 0, _PixelInternalFormat, _Width, _Height, 0, _PixelFormat, PixelType.UnsignedByte, imageData._ImgData);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapLinear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         public void Use()
@@ -49,6 +47,7 @@ namespace EvllyEngine
 
         public void Delete()
         {
+            GL.DeleteTexture(Handle);
             _imagePixel = null;
         }
 

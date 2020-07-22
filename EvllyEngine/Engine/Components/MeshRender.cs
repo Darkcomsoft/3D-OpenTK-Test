@@ -13,9 +13,11 @@ namespace EvllyEngine
     {
         public GameObject gameObject;
         public Mesh _mesh;
-        Shader _shader;
+        public Shader _shader;
         private int IBO;
         private int VAO;
+
+        public bool Transparency = false;
 
         public MeshRender(GameObject obj, Mesh mesh, Shader shader)
         {
@@ -58,6 +60,12 @@ namespace EvllyEngine
 
         public void Draw(FrameEventArgs e)
         {
+            if (Transparency)
+            {
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+                GL.Enable(EnableCap.Blend);
+            }
+            
             GL.BindVertexArray(VAO);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, IBO);
 
@@ -71,11 +79,16 @@ namespace EvllyEngine
             GL.DrawElements(BeginMode.Triangles, _mesh._indices.Length, DrawElementsType.UnsignedInt, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindVertexArray(0);
+
+            if (Transparency)
+            {
+                GL.Disable(EnableCap.Blend);
+            }
         }
 
         public void OnDestroy()
         {
-            _shader.Delete();
+            //_shader.Delete();
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindVertexArray(0);

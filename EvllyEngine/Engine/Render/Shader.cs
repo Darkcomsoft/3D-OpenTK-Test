@@ -11,25 +11,23 @@ namespace EvllyEngine
     public class Shader
     {
         private Texture _Texture;
-        public readonly int _shaderProgram;
+        public int _shaderProgram;
         private bool IsValid = true;
 
         private Dictionary<string, int> _uniformLocations;
 
-        public Shader(string ShaderName) 
+        public Shader(ShaderFile fileShader) 
         {
             _uniformLocations = new Dictionary<string, int>();
-            _Texture = new Texture("devTexture", "jpg");
-
-            _shaderProgram = CompileShader(ShaderName);
+            _Texture = new Texture(AssetsManager.instance.GetTexture("devTexture", "jpg"));
+            CompileShader(fileShader);
         }
 
-        public Shader(string ShaderName, string Texture, string textureExtensio)
+        public Shader(ShaderFile fileShader, Texture tex0)
         {
             _uniformLocations = new Dictionary<string, int>();
-            _Texture = new Texture(Texture, textureExtensio);
-
-            _shaderProgram = CompileShader(ShaderName);
+            _Texture = tex0;
+            CompileShader(fileShader);
         }
 
         public void Delete()
@@ -51,10 +49,8 @@ namespace EvllyEngine
             }
         }
 
-        public int CompileShader(string Shader)
+        private int CompileShader(ShaderFile shaderData)
         {
-            ShaderFile shaderData = AssetsManager.LoadShader("Assets/Shaders/", Shader);
-
             int vert_shader = GL.CreateShader(ShaderType.VertexShader);
             int frag_shader = GL.CreateShader(ShaderType.FragmentShader);
 
@@ -87,8 +83,13 @@ namespace EvllyEngine
                 Debug.LogError("SHADER: Failed to create program : " + GL.GetError());
                 GL.DeleteProgram(program);
             }
-
+            _shaderProgram = program;
             return program;
+        }
+
+        public void AddTexture(Texture texture)
+        {
+            _Texture = texture;
         }
 
         /// <summary>

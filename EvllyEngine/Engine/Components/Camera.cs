@@ -29,9 +29,8 @@ namespace EvllyEngine
         public Vector2 mouseVector;
         public Vector3 finalTarget;
         public Vector3 target;
-		public MouseState previousMouseState;
 		public Vector3 mouseRotationBuffer;
-		public const float rotationSpeed = 1f;
+		public const float rotationSpeed = 4f;
 		public const float moveSpeed = 3.0f;
 		public float MoveSpeed = 0.6f;
         public bool MouseLook = true;
@@ -40,9 +39,6 @@ namespace EvllyEngine
         {
             gameObject = obj;
             Main = this;
-
-            gameObject._transform._Position = new Vector3(0,0,-3);
-            gameObject._transform._Rotation = new Quaternion(0,0,0,0);
             _aspectRatio = (float)Engine.Instance.Width / (float)Engine.Instance.Height;
 
             _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(_fildOfView), _aspectRatio, _nearPlane, _farPlane);
@@ -56,14 +52,13 @@ namespace EvllyEngine
             _aspectRatio = (float)Engine.Instance.Width / (float)Engine.Instance.Height;
             _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(_fildOfView), _aspectRatio, _nearPlane, _farPlane);
 
-            Vector3 cameraTarget = Vector3.Zero;
+            /*Vector3 cameraTarget = Vector3.Zero;
             Vector3 cameraDirection = Vector3.Normalize(gameObject._transform._Position - cameraTarget);
             Vector3 up = Vector3.UnitY;
             Vector3 cameraRight = Vector3.Normalize(Vector3.Cross(up, cameraDirection));
-            Vector3 cameraUp = Vector3.Cross(cameraDirection, cameraRight);
+            Vector3 cameraUp = Vector3.Cross(cameraDirection, cameraRight);*/
 
             var moveVector = new Vector3(0, 0, 0);
-            MouseState ms = Mouse.GetState();
 
             var curMousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
             if (curMousePos != Point.Zero)
@@ -122,27 +117,22 @@ namespace EvllyEngine
 
             if (MouseLook)
             {
-                if (ms != previousMouseState)
+                mouseRotationBuffer.X -= 0.1f * Input.GetMouse.XDelta * rotationSpeed * (float)time;
+                mouseRotationBuffer.Y -= 0.1f * Input.GetMouse.YDelta * rotationSpeed * (float)time;
+
+                if (mouseRotationBuffer.Y < MathHelper.DegreesToRadians(-75.0f))
                 {
-                    mouseRotationBuffer.X -= 0.1f * Input.GetMouse.XDelta * (float)time;
-                    mouseRotationBuffer.Y -= 0.1f * Input.GetMouse.YDelta * (float)time;
-
-                    if (mouseRotationBuffer.Y < MathHelper.DegreesToRadians(-75.0f))
-                    {
-                        mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(-75.0f));
-                    }
-
-                    if (mouseRotationBuffer.Y > MathHelper.DegreesToRadians(75.0f))
-                    {
-                        mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(75.0f));
-                    }
-
-                    gameObject._transform._Rotation = new Quaternion(-MathHelper.Clamp(mouseRotationBuffer.Y, MathHelper.DegreesToRadians(-75.0f), MathHelper.DegreesToRadians(75.0f)), WrapAngle(mouseRotationBuffer.X), 0, 0);
+                    mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(-75.0f));
                 }
 
-                Mouse.SetPosition(Engine.Instance.Width / 2, Engine.Instance.Height / 2);
+                if (mouseRotationBuffer.Y > MathHelper.DegreesToRadians(75.0f))
+                {
+                    mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(75.0f));
+                }
 
-                previousMouseState = ms;
+                gameObject._transform._Rotation = new Quaternion(-MathHelper.Clamp(mouseRotationBuffer.Y, MathHelper.DegreesToRadians(-75.0f), MathHelper.DegreesToRadians(75.0f)), WrapAngle(mouseRotationBuffer.X), 0, 0);
+
+                Mouse.SetPosition(Engine.Instance.Width / 2, Engine.Instance.Height / 2);
             }
 
             AddToCameraPosition(moveVector * (float)time);

@@ -16,6 +16,15 @@ namespace EvllyEngine
         public float[] _texCoords;
         public float[] _Colors;
 
+        public Mesh(Mesh newmesh)
+        {
+            _vertices = newmesh._vertices;
+            _indices = newmesh._indices;
+            _texCoords = newmesh._texCoords;
+            _Colors = newmesh._Colors;
+            _Material = newmesh._Material;
+        }
+
         public Mesh() 
         {
             _vertices = new float[]
@@ -64,6 +73,15 @@ namespace EvllyEngine
             _indices = indices;
             _texCoords = textures;
             _Colors = colors;
+        }
+
+        public void Clear()
+        {
+            _vertices = null;
+            _indices = null;
+            _texCoords = null;
+            _Colors = null;
+            _Material = null;
         }
     }
 }

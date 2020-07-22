@@ -12,9 +12,12 @@ namespace EvllyEngine
     {
         public readonly int _SceneID;
         public string _name;
+        public List<object> ScriptElements = new List<object>();
         public Transform _transform;
         private MeshRender _MeshRender;
         private Camera _camera;
+        private BoxCollider _boxCollider;
+        private RigidBody _rigidBody;
 
         public GameObject(int scene) 
         {
@@ -77,6 +80,19 @@ namespace EvllyEngine
             {
                 _camera.Update((float)e.Time);
             }
+
+            if (_rigidBody != null)
+            {
+                _rigidBody.Update();
+            }
+
+            if (ScriptElements != null)
+            {
+                foreach (ScriptBase item in ScriptElements)
+                {
+                    item.Update();
+                }
+            }
         }
 
         public void Draw(FrameEventArgs e)
@@ -91,20 +107,46 @@ namespace EvllyEngine
         {
             Engine.Instance.UpdateFrame -= Update;
             Engine.Instance.DrawUpdate -= Draw;
+
             if (_MeshRender != null)
             {
                 _MeshRender.OnDestroy();
+                _MeshRender.gameObject = null;
             }
 
             if (_camera != null)
             {
                 _camera.OnDestroy();
+                _camera.gameObject = null;
             }
+
+            if (_boxCollider != null)
+            {
+                _boxCollider.OnDestroy();
+            }
+
+            if (_rigidBody != null)
+            {
+                _rigidBody.OnDestroy();
+            }
+
+            foreach (ScriptBase item in ScriptElements)
+            {
+                item.OnDestroy();
+                item.gameObject = null;
+            }
+
+            ScriptElements.Clear();
+
+            _transform._gameObject = null;
 
             _transform = null;
             _MeshRender = null;
             _camera = null;
-           
+
+            ScriptElements = null;
+
+            GC.Collect();
         }
 
         public static GameObject Instantiate(int scene)
@@ -157,15 +199,60 @@ namespace EvllyEngine
         }
         public MeshRender AddMeshRender()
         {
-            MeshRender meshrender = new MeshRender(this, AssetsManager.LoadModel("Assets/Models/", "Cube"), new Shader("Default", "NewGrassTeste", "png"));
+            MeshRender meshrender = new MeshRender(this, AssetsManager.LoadModel("Assets/Models/", "Cube"), new Shader(AssetsManager.instance.GetShader("Default")));
+            meshrender._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("NewGrassTeste", "png")));
             _MeshRender = meshrender;
             return _MeshRender;
+        }
+
+
+        public BoxCollider AddBoxCollider(BoxCollider boxCollider)
+        {
+            _boxCollider = boxCollider;
+            return _boxCollider;
+        }
+        public BoxCollider AddBoxCollider()
+        {
+            BoxCollider boxCollider = new BoxCollider();
+            _boxCollider = boxCollider;
+            return _boxCollider;
+        }
+
+
+        public RigidBody AddRigidBody(RigidBody rigidBody)
+        {
+            _rigidBody = rigidBody;
+            return _rigidBody;
+        }
+        public RigidBody AddRigidBody()
+        {
+            RigidBody rigidBody = new RigidBody(this);
+            _rigidBody = rigidBody;
+            return _rigidBody;
+        }
+
+        public RigidBody GetRigidBody()
+        {
+            if (_rigidBody != null)
+            {
+                return _rigidBody;
+            }
+            return null;
+        }
+
+        public void AddScript(ScriptBase script)
+        {
+            script.gameObject = this;
+            script.Start();
+            ScriptElements.Add(script);
         }
 
         public static void Destroy(GameObject gameObject)
         {
             Engine.Instance.RemoveObject(gameObject);
         }
+
+        public bool HaveRigid { get { return (_rigidBody != null); } }
     }
 
     public class ObjElement

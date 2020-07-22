@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace EvllyEngine
 {
@@ -19,9 +20,9 @@ namespace EvllyEngine
     {
         public static Engine Instance;
         public AssetsManager _assetsManager;
-        
+        private UIManager _UIManager;
+        private Physics _physics;
         private int FPS;
-        private ulong Tick;
 
         public int GetFPS { get { return FPS; } }
 
@@ -37,7 +38,7 @@ namespace EvllyEngine
         public Engine(int width, int height, string title) : base(width, height, GraphicsMode.Default, title) { Instance = this; }
 
         public Action<FrameEventArgs> DrawUpdate;
-
+        GameObject LaucherPed;
         protected override void OnLoad(EventArgs e)
         {
             //Load the Window/pre Graphics Stuff//
@@ -46,34 +47,68 @@ namespace EvllyEngine
 
             GL.ClearColor(Color4.DeepSkyBlue);
             GL.Enable(EnableCap.DepthTest);
+            GL.CullFace(CullFaceMode.Front);
             GL.Viewport(0, 0, Width, Height);
             //Load the Engine Stuff//
             _assetsManager = new AssetsManager();
+            _UIManager = new UIManager();
+            _physics = new Physics();
             SceneManager.LoadDontDestroyScene();
             SceneManager.LoadDefaultScene();
             
             GameObject camobj = GameObject.Instantiate("Camera", 1);
+            camobj._transform._Position = new Vector3(0,1,0);
             camobj.AddCamera();
+
+            GameObject World = GameObject.Instantiate(new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0), 1);
+            World.AddScript(new World());
 
             for (int x = 0; x < 2; x++)
             {
                 if (x == 0)
                 {
                     GameObject obj = GameObject.Instantiate(new Vector3(x, 0, 0), Quaternion.Identity, 1);
-                    obj.AddMeshRender(new MeshRender(obj, AssetsManager.LoadModel("Assets/Models/", "Cube"), new Shader("Default", "NewGrassTeste", "png")));
+                    MeshRender mesh = obj.AddMeshRender(new MeshRender(obj, AssetsManager.instance.GetMesh("Cube"), new Shader(AssetsManager.instance.GetShader("Default"))));
+                    obj.AddBoxCollider(new BoxCollider(new Vector3(100,2,100)));
+                    mesh._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("NewGrassTeste", "png")));
                 }
                 else
                 {
-                    GameObject obj = GameObject.Instantiate(new Vector3(x, 0, 0), Quaternion.Identity, 1);
-                    obj.AddMeshRender(new MeshRender(obj, AssetsManager.LoadModel("Assets/Models/", "Cube2"), new Shader("Default", "RockBrick_01", "png")));
+                    GameObject obj = GameObject.Instantiate(new Vector3(x, 0.01f, 0), Quaternion.Identity, 1);
+                    MeshRender meshh = obj.AddMeshRender(new MeshRender(obj, AssetsManager.instance.GetMesh("Cube2"), new Shader(AssetsManager.instance.GetShader("Default"))));
+                    meshh._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("RockBrick_01", "png")));
                 }
             }
+            
+            GameObject obj2 = GameObject.Instantiate(new Vector3(0, 20, 0), new Quaternion(-90,0,0,0), 1);
+            MeshRender mesh2 = obj2.AddMeshRender(new MeshRender(obj2, _assetsManager.GetErrorMesh, new Shader(AssetsManager.instance.GetShader("Default"))));
+            mesh2._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("RedTexture", "png")));
+
+
+            LaucherPed = GameObject.Instantiate(new Vector3(50,100,0), new Quaternion(0, 0, 0, 0), 1);
+            LaucherPed.AddScript(new ScriptTest());
+            LaucherPed.AddRigidBody();
+            MeshRender meshLaucherPed = LaucherPed.AddMeshRender(new MeshRender(LaucherPed, new Mesh(AssetsManager.instance.GetMesh("Monkey")), new Shader(AssetsManager.instance.GetShader("Default"))));
+            meshLaucherPed._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("woodplank01", "png")));
+            meshLaucherPed.Transparency = true;
 
             base.OnLoad(e);
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            _physics.UpdatePhisics((float)e.Time);
+
+            if (Input.GetKey(Key.C))
+            {
+                GameObject monkeyRigid = GameObject.Instantiate(new Vector3(50, 100, 0), new Quaternion(0, 0, 0, 0), 1);
+                monkeyRigid.AddScript(new ScriptTest());
+                monkeyRigid.AddRigidBody();
+                MeshRender meshLaucherPed = monkeyRigid.AddMeshRender(new MeshRender(monkeyRigid, new Mesh(AssetsManager.instance.GetMesh("Monkey")), new Shader(AssetsManager.instance.GetShader("Default"))));
+                meshLaucherPed._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("woodplank01", "png")));
+                meshLaucherPed.Transparency = true;
+            }
+
             if (Input.GetKeyDown(Key.F11))
             {
                 if (WindowState == WindowState.Fullscreen)
@@ -90,17 +125,20 @@ namespace EvllyEngine
             {
                 Exit();
             }
-
-            Tick++;
+            _UIManager.Text = "EvllyEngine FPS: " + FPS + " Tick: " + Time._Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform._Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform._Rotation.ToString();
+            Time._Time = (float)e.Time;
+            Time._Tick++;
             base.OnUpdateFrame(e);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            FPS = (int)(1f / e.Time);
-            //Title = "EvllyEngine FPS: " + FPS + " Tick: " + Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform._Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform._Rotation.ToString();
-            DrawUpdate.Invoke(e);
+            GL.Enable(EnableCap.CullFace);
+                FPS = (int)(1f / e.Time);
+                DrawUpdate.Invoke(e);
+            GL.Disable(EnableCap.CullFace);
+                _UIManager.DrawUI();
             SwapBuffers();
             base.OnRenderFrame(e);
         }
@@ -137,6 +175,10 @@ namespace EvllyEngine
             {
                 SceneManager.GetSceneArray[i].OnUnloadScene();
             }
+
+            _assetsManager.UnloadAll();
+            _UIManager.Dispose();
+            _physics.Dispose();
             base.OnUnload(e);
         }
 
@@ -144,13 +186,21 @@ namespace EvllyEngine
         {
             if (GameObjects.Contains(obj))
             {
+                obj.OnDestroy();
                 GameObjects.Remove(obj);
+                obj = null;
             }
         }
         public void AddObject(GameObject obj)
         {
             GameObjects.Add(obj);
         }
+    }
+
+    public static class Time
+    {
+        public static float _Time;
+        public static float _Tick;
     }
 
     [DebuggerDisplay("{DebugDisplayString,nq}")]

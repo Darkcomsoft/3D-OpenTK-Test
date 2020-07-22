@@ -14,7 +14,33 @@ namespace EvllyEngine
 {
     public class AssetsManager
     {
-        public AssetsManager() {}
+        public static AssetsManager instance;
+        private Mesh Engine_Error;
+        private Dictionary<AssetType, ImageFile> Texture = new Dictionary<AssetType, ImageFile>();
+        private Dictionary<AssetType, Mesh> Model = new Dictionary<AssetType, Mesh>();
+        private Dictionary<AssetType, ShaderFile> Shader = new Dictionary<AssetType, ShaderFile>();
+
+        public AssetsManager() 
+        {
+            instance = this;
+            Engine_Error = LoadModel("Assets/Models/", "error");
+        }
+
+        public void UnloadAll()
+        {
+            foreach (var item in Model)
+            {
+                item.Value.Clear();
+            }
+
+            Texture.Clear();
+            Model.Clear();
+            Shader.Clear();
+
+            Texture = null;
+            Model = null;
+            Shader = null;
+        }
 
         public static ShaderFile LoadShader(string path, string file)
         {
@@ -59,6 +85,62 @@ namespace EvllyEngine
 
             return processor.Load();
         }
+
+        public ImageFile GetTexture(string TextureName, string fileextensio)
+        {
+            if (Texture.TryGetValue(new AssetType(TextureName, fileextensio), out ImageFile texture))
+            {
+                return texture;
+            }
+            else
+            {
+                ImageFile tex = LoadImage("Assets/Texture/", TextureName, fileextensio);
+                Texture.Add(new AssetType(TextureName, fileextensio), tex);
+                return tex;
+            }
+        }
+        public Mesh GetMesh(string MeshName)
+        {
+            if (Model.TryGetValue(new AssetType(MeshName, ".dae"), out Mesh _mesh))
+            {
+                return _mesh;
+            }
+            else
+            {
+                Mesh mesh = LoadModel("Assets/Models/", MeshName);
+                Model.Add(new AssetType(MeshName, ".dae"), mesh);
+                return mesh;
+            }
+        }
+        public ShaderFile GetShader(string MeshName)
+        {
+            if (Shader.TryGetValue(new AssetType(MeshName, "shader"), out ShaderFile _shader))
+            {
+                return _shader;
+            }
+            else
+            {
+                ShaderFile shader = LoadShader("Assets/Shaders/", MeshName);
+                Shader.Add(new AssetType(MeshName, "shader"), shader);
+                return shader;
+            }
+        }
+
+        public Mesh GetErrorMesh { get { return Engine_Error; } }
+    }
+}
+
+public struct AssetType
+{
+    public string name;
+    public string FileExtension;
+    private string textureName;
+    private string filename;
+
+    public AssetType(string textureName, string filename) : this()
+    {
+        this.textureName = textureName;
+        this.filename = filename;
     }
 }
 
