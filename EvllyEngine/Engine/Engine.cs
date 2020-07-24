@@ -24,6 +24,8 @@ namespace EvllyEngine
         private Physics _physics;
         private int FPS;
 
+        public bool EngineReady;
+
         public int GetFPS { get { return FPS; } }
 
         /// <summary>
@@ -56,11 +58,18 @@ namespace EvllyEngine
             SceneManager.LoadDontDestroyScene();
             SceneManager.LoadDefaultScene();
             
+            GameObject Player = GameObject.Instantiate("Player", 1);
+            Player._transform.Position = new Vector3(0, 50, 0);
+            Player.AddRigidBody();
+            Player.AddScript(new PlayerEntity());
+
             GameObject camobj = GameObject.Instantiate("Camera", 1);
-            camobj._transform._Position = new Vector3(0,1,0);
+            camobj._transform.Position = new Vector3(0,1,0);
             camobj.AddCamera();
 
-            GameObject World = GameObject.Instantiate(new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0), 1);
+            camobj._transform.SetChild(Player._transform);
+
+           GameObject World = GameObject.Instantiate(new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0), 1);
             World.AddScript(new World());
 
             for (int x = 0; x < 2; x++)
@@ -69,7 +78,8 @@ namespace EvllyEngine
                 {
                     GameObject obj = GameObject.Instantiate(new Vector3(x, 0, 0), Quaternion.Identity, 1);
                     MeshRender mesh = obj.AddMeshRender(new MeshRender(obj, AssetsManager.instance.GetMesh("Cube"), new Shader(AssetsManager.instance.GetShader("Default"))));
-                    obj.AddBoxCollider(new BoxCollider(new Vector3(100,2,100)));
+                    //obj.AddBoxCollider(new BoxCollider(obj, new Vector3(100,1,100)));
+                    obj.AddMeshCollider();
                     mesh._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("NewGrassTeste", "png")));
                 }
                 else
@@ -77,35 +87,42 @@ namespace EvllyEngine
                     GameObject obj = GameObject.Instantiate(new Vector3(x, 0.01f, 0), Quaternion.Identity, 1);
                     MeshRender meshh = obj.AddMeshRender(new MeshRender(obj, AssetsManager.instance.GetMesh("Cube2"), new Shader(AssetsManager.instance.GetShader("Default"))));
                     meshh._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("RockBrick_01", "png")));
+                    obj.AddMeshCollider();
                 }
             }
-            
+
+            for (int i = 0; i < 1; i++)
+            {
+                GameObject wall = GameObject.Instantiate(new Vector3(0, 0, -100), new Quaternion(90,0,0,0), 1);
+                MeshRender mesh = wall.AddMeshRender(new MeshRender(wall, AssetsManager.instance.GetMesh("Cube"), new Shader(AssetsManager.instance.GetShader("Default"))));
+                wall.AddBoxCollider(new BoxCollider(wall, new Vector3(100, 1, 100)));
+                mesh._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("NewGrassTeste", "png")));
+            }
+
             GameObject obj2 = GameObject.Instantiate(new Vector3(0, 20, 0), new Quaternion(-90,0,0,0), 1);
             MeshRender mesh2 = obj2.AddMeshRender(new MeshRender(obj2, _assetsManager.GetErrorMesh, new Shader(AssetsManager.instance.GetShader("Default"))));
             mesh2._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("RedTexture", "png")));
 
 
-            LaucherPed = GameObject.Instantiate(new Vector3(50,100,0), new Quaternion(0, 0, 0, 0), 1);
+            LaucherPed = GameObject.Instantiate(new Vector3(50,1,0), new Quaternion(0, 0, 0, 0), 1);
             LaucherPed.AddScript(new ScriptTest());
-            LaucherPed.AddRigidBody();
             MeshRender meshLaucherPed = LaucherPed.AddMeshRender(new MeshRender(LaucherPed, new Mesh(AssetsManager.instance.GetMesh("Monkey")), new Shader(AssetsManager.instance.GetShader("Default"))));
             meshLaucherPed._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("woodplank01", "png")));
+            LaucherPed.AddRigidBody();
             meshLaucherPed.Transparency = true;
-
+            EngineReady = true;
             base.OnLoad(e);
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            _physics.UpdatePhisics((float)e.Time);
-
             if (Input.GetKey(Key.C))
             {
-                GameObject monkeyRigid = GameObject.Instantiate(new Vector3(50, 100, 0), new Quaternion(0, 0, 0, 0), 1);
-                monkeyRigid.AddScript(new ScriptTest());
-                monkeyRigid.AddRigidBody();
+                GameObject monkeyRigid = GameObject.Instantiate(Camera.Main.gameObject._transform.Position, new Quaternion(0, 0, 0, 0), 1);
+                ///monkeyRigid.AddScript(new ScriptTest());
                 MeshRender meshLaucherPed = monkeyRigid.AddMeshRender(new MeshRender(monkeyRigid, new Mesh(AssetsManager.instance.GetMesh("Monkey")), new Shader(AssetsManager.instance.GetShader("Default"))));
                 meshLaucherPed._shader.AddTexture(new Texture(AssetsManager.instance.GetTexture("woodplank01", "png")));
+                RigidBody body = monkeyRigid.AddRigidBody();
                 meshLaucherPed.Transparency = true;
             }
 
@@ -125,9 +142,10 @@ namespace EvllyEngine
             {
                 Exit();
             }
-            _UIManager.Text = "EvllyEngine FPS: " + FPS + " Tick: " + Time._Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform._Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform._Rotation.ToString();
+            _UIManager.Text = "EvllyEngine FPS: " + FPS + " Tick: " + Time._Tick % 60 + " Objects: " + GameObjects.Count + " CameraPosition: " + Camera.Main.gameObject._transform.Position.ToString() + " CameraRotation: " + Camera.Main.gameObject._transform.Rotation.ToString();
             Time._Time = (float)e.Time;
             Time._Tick++;
+            _physics.UpdatePhisics((float)e.Time);
             base.OnUpdateFrame(e);
         }
 
@@ -138,7 +156,10 @@ namespace EvllyEngine
                 FPS = (int)(1f / e.Time);
                 DrawUpdate.Invoke(e);
             GL.Disable(EnableCap.CullFace);
-                _UIManager.DrawUI();
+                if (EngineReady)
+                {
+                    //_UIManager.DrawUI();
+                }
             SwapBuffers();
             base.OnRenderFrame(e);
         }
@@ -201,6 +222,63 @@ namespace EvllyEngine
     {
         public static float _Time;
         public static float _Tick;
+    }
+
+    public static class Cursor
+    {
+        public static Vector2 MousePosition;
+        protected void ResetCursorPosition()
+        {
+            Mouse.SetPosition(Engine.Instance.Width / 2, Engine.Instance.Height / 2);
+            _lastMousePos = MousePosition;
+        }
+
+        protected void LockMouse()
+        {
+            _lockMouse = true;
+            _origCursorPosition = Cursor.Position;
+            CursorVisible = false;
+            ResetCursorPosition();
+        }
+
+        protected void UnlockMouse()
+        {
+            _lockMouse = false;
+            CursorVisible = true;
+            Cursor.Position = _origCursorPosition;
+        }
+
+        void OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!_lockMouse) LockMouse();
+        }
+
+        void OnKeyDown(object sender, KeyboardKeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                if (_lockMouse) UnlockMouse();
+                else Exit();
+            }
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            if (_lockMouse)
+            {
+                var mouseDelta = Cursor.Position - new Size(_lastMousePos);
+                if (mouseDelta != Point.Empty)
+                {
+                    _lookDir.X += mouseDelta.X * _mouseSensitivity;
+                    _lookDir.Y -= mouseDelta.Y * _mouseSensitivity;
+                    ResetCursorPosition();
+                }
+            }
+
+            var target = _pos + new Vector3((float)Math.Cos(_lookDir.X), (float)Math.Sin(_lookDir.Y / 2), (float)Math.Sin(_lookDir.X));
+            _viewMat = Matrix4.LookAt(_pos, target, _up);
+            _projUniform.Mat4(_viewMat * _projMat);
+        }
     }
 
     [DebuggerDisplay("{DebugDisplayString,nq}")]

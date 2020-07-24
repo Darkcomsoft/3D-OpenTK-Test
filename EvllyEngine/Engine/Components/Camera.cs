@@ -35,7 +35,10 @@ namespace EvllyEngine
 		public float MoveSpeed = 0.6f;
         public bool MouseLook = true;
 
-		public Camera(GameObject obj)
+        MouseState laststate;
+
+
+        public Camera(GameObject obj)
         {
             gameObject = obj;
             Main = this;
@@ -58,6 +61,7 @@ namespace EvllyEngine
             Vector3 cameraRight = Vector3.Normalize(Vector3.Cross(up, cameraDirection));
             Vector3 cameraUp = Vector3.Cross(cameraDirection, cameraRight);*/
 
+            MouseState state = Mouse.GetState();
             var moveVector = new Vector3(0, 0, 0);
 
             var curMousePos = new Point(Mouse.GetState().X, Mouse.GetState().Y);
@@ -108,56 +112,58 @@ namespace EvllyEngine
 
             if (Input.GetKey(Key.ShiftLeft))
             {
-                MoveSpeed = 3 * 5;
+                MoveSpeed = 200;
             }
             else
             {
-                MoveSpeed = 3;
+                MoveSpeed = 100;
             }
 
             if (MouseLook)
             {
-                mouseRotationBuffer.X -= 0.1f * Input.GetMouse.XDelta * rotationSpeed * (float)time;
-                mouseRotationBuffer.Y -= 0.1f * Input.GetMouse.YDelta * rotationSpeed * (float)time;
-
-                if (mouseRotationBuffer.Y < MathHelper.DegreesToRadians(-75.0f))
+                if (state != laststate)
                 {
-                    mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(-75.0f));
+                    mouseRotationBuffer.X -= 0.1f * Input.GetMouse.XDelta * rotationSpeed * (float)time;
+                    mouseRotationBuffer.Y -= 0.1f * Input.GetMouse.YDelta * rotationSpeed * (float)time;
+
+                    if (mouseRotationBuffer.Y < MathHelper.DegreesToRadians(-75.0f))
+                    {
+                        mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(-75.0f));
+                    }
+
+                    if (mouseRotationBuffer.Y > MathHelper.DegreesToRadians(75.0f))
+                    {
+                        mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(75.0f));
+                    }
+
+                    gameObject._transform.Rotation = new Quaternion(-MathHelper.Clamp(mouseRotationBuffer.Y, MathHelper.DegreesToRadians(-75.0f), MathHelper.DegreesToRadians(75.0f)), 0, 0, 0);
+                    gameObject._transform.Root.Rotation = new Quaternion(0, WrapAngle(mouseRotationBuffer.X), 0, 0);
                 }
-
-                if (mouseRotationBuffer.Y > MathHelper.DegreesToRadians(75.0f))
-                {
-                    mouseRotationBuffer.Y = mouseRotationBuffer.Y - (mouseRotationBuffer.Y - MathHelper.DegreesToRadians(75.0f));
-                }
-
-                gameObject._transform._Rotation = new Quaternion(-MathHelper.Clamp(mouseRotationBuffer.Y, MathHelper.DegreesToRadians(-75.0f), MathHelper.DegreesToRadians(75.0f)), WrapAngle(mouseRotationBuffer.X), 0, 0);
-
-                Mouse.SetPosition(Engine.Instance.Width / 2, Engine.Instance.Height / 2);
             }
-
+            laststate = state;
             AddToCameraPosition(moveVector * (float)time);
             UpdateViewMatrix();
 		}
 
         private void AddToCameraPosition(Vector3 moveVector)
         {
-            var camRotation = Matrix3.CreateRotationX(gameObject._transform._Rotation.X) * Matrix3.CreateRotationY(gameObject._transform._Rotation.Y) * Matrix3.CreateRotationZ(gameObject._transform._Rotation.Z);
+            var camRotation = Matrix3.CreateRotationX(gameObject._transform.Rotation.X) * Matrix3.CreateRotationY(gameObject._transform.Rotation.Y) * Matrix3.CreateRotationZ(gameObject._transform.Rotation.Z);
             var rotatedVector = Vector3.Transform(moveVector, camRotation);
-            gameObject._transform._Position += rotatedVector * moveSpeed;
+            //gameObject.GetRigidBody().Move(rotatedVector * moveSpeed);
         }
 
         private void UpdateViewMatrix()
         {
-            var camRotation = Matrix3.CreateRotationX(gameObject._transform._Rotation.X) * Matrix3.CreateRotationY(gameObject._transform._Rotation.Y) * Matrix3.CreateRotationZ(gameObject._transform._Rotation.Z);
+            var camRotation = Matrix3.CreateRotationX(gameObject._transform.Rotation.X) * Matrix3.CreateRotationY(gameObject._transform.Rotation.Y) * Matrix3.CreateRotationZ(gameObject._transform.Rotation.Z);
 
             var camOriginalTarget = new Vector3(0, 0, 1);
             var camRotatedTarget = Vector3.Transform(camOriginalTarget, camRotation);
-            finalTarget = new Vector3(gameObject._transform._Position) + camRotatedTarget;
+            finalTarget = new Vector3(gameObject._transform.Position) + camRotatedTarget;
 
             var camOriginalUpVector = new Vector3(0, 1, 0);
             var camRotatedUpVector = Vector3.Transform(camOriginalUpVector, camRotation);
 
-            viewMatrix = Matrix4.LookAt(gameObject._transform._Position, finalTarget, camRotatedUpVector);
+            viewMatrix = Matrix4.LookAt(gameObject._transform.Position, finalTarget, camRotatedUpVector);
         }
 
         public void OnDestroy()

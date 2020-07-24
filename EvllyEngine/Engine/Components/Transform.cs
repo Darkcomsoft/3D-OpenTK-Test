@@ -1,6 +1,7 @@
 ﻿using OpenTK;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,25 +10,29 @@ namespace EvllyEngine
 {
     public class Transform
     {
-        public Vector3 _Position;
-        public Quaternion _Rotation;
-        public Vector3 _Size;
+        private Vector3 _Position;
+        private Quaternion _Rotation;
+        private Vector3 _Size;
 
         public GameObject _gameObject;
-        private List<Transform> _Child = new List<Transform>();
+        public Transform Root;
+        public bool IsRoot;
 
-        public Transform() { }
+        public Transform() { IsRoot = true; }
+        public Transform(Transform tran) : this() { IsRoot = true; }
         public Transform(Vector3 position, Quaternion rotation, Vector3 size)
         {
             _Position = position;
             _Rotation = rotation;
             _Size = size;
+            IsRoot = true;
         }
         public Transform(Vector3 position, Quaternion rotation)
         {
             _Position = position;
             _Rotation = rotation;
             _Size = Vector3.One;
+            IsRoot = true;
         }
 
         public Matrix4 PositionMatrix { get { return Matrix4.CreateTranslation(_Position); } }
@@ -36,30 +41,94 @@ namespace EvllyEngine
         { 
             get 
             { 
-                if (_gameObject.HaveRigid)
+                if (IsRoot)
                 {
-                    return _gameObject.GetRigidBody().GetWorld * Matrix4.CreateScale(_Size);
+                    if (_gameObject.HaveRigid)
+                    {
+                        return _gameObject.GetRigidBody().GetWorld * Matrix4.CreateScale(_Size);
+                    }
+                    else
+                    {
+                        return RotationMatrix * PositionMatrix * Matrix4.CreateScale(_Size);
+                    }
                 }
                 else
                 {
-                    return RotationMatrix * PositionMatrix * Matrix4.CreateScale(_Size);
+                    //applyParent position/rotation/size plus the chuld position localposition/rotation/size
+                    _Position = Root._Position;
+                    return (RotationMatrix * PositionMatrix * Matrix4.CreateScale(_Size)) + (Root.RotationMatrix * Root.PositionMatrix * Matrix4.CreateScale(Root._Size));
                 }
             } 
         }
 
-        public void SetChild(Transform Child)
+        public Vector3 Position
         {
-            if (!_Child.Contains(Child))
+            get
             {
-                _Child.Add(Child);
+                if (IsRoot)
+                {
+                    if (_gameObject.HaveRigid)
+                    {
+                        _Position = _gameObject.GetRigidBody().GetWorld.ExtractTranslation();
+                        return _Position;
+                    }
+                    else
+                    {
+                        return _Position;
+                    }
+                }
+                else
+                {
+                    return _Position + Root.Position;
+                }
             }
+            set { _Position = value; }
         }
-        public void RemoveChild(Transform Child)
+        public Quaternion Rotation
         {
-            if (_Child.Contains(Child))
+            get
             {
-                _Child.Remove(Child);
+                if (IsRoot)
+                {
+                    return _Rotation;
+                }
+                else
+                {
+                    return _Rotation + Root._Rotation;
+                }
             }
+            set { _Rotation = value; }
+        }
+        public Vector3 Size
+        {
+            get
+            {
+                if (IsRoot)
+                {
+                    return _Size;
+                }
+                else
+                {
+                    return _Size + Root._Size;
+                }
+            }
+            set { _Size = value; }
+        }
+
+        public void Update()
+        {
+
+        }
+
+        public void SetChild(Transform root)
+        {
+            Root = root;
+            IsRoot = false;
+        }
+        public void RemoveChild()
+        {
+            Root = null;
+            IsRoot = true;
         }
     }
 }

@@ -42,7 +42,7 @@ namespace EvllyEngine
 
         public override void Update()
         {
-            PlayerPos = Camera.Main.gameObject._transform._Position;
+            PlayerPos = Camera.Main.gameObject._transform.Position;
             CheckViewDistance();
             base.Update();
         }
@@ -139,7 +139,7 @@ namespace EvllyEngine
 
                 return chunk.Blocks[x - (int)chunk.chunkPosition.X, z - (int)chunk.chunkPosition.Z];
             }
-            return null;
+            return new Block();
         }
 
         public Block GetTileAt(Vector3 pos)
@@ -151,7 +151,7 @@ namespace EvllyEngine
                 lock (chunk.Blocks)
                     return chunk.Blocks[(int)pos.X - (int)chunk.chunkPosition.X, (int)pos.Z - (int)chunk.chunkPosition.Z];
             }
-            return null;
+            return new Block();
         }
 
         public Block GetTileAt(float x, float z)
@@ -165,7 +165,7 @@ namespace EvllyEngine
             {
                 return chunk.Blocks[mx - (int)chunk.chunkPosition.X, mz - (int)chunk.chunkPosition.Z];
             }
-            return null;
+            return new Block();
         }
 
         public Chunk GetChunkAt(int xx, int zz)

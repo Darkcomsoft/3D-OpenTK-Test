@@ -17,6 +17,7 @@ namespace EvllyEngine
         private MeshRender _MeshRender;
         private Camera _camera;
         private BoxCollider _boxCollider;
+        private MeshCollider _meshCollider;
         private RigidBody _rigidBody;
 
         public GameObject(int scene) 
@@ -45,7 +46,7 @@ namespace EvllyEngine
         }
         public GameObject(Transform parent)
         {
-            _transform = new Transform(parent._Position, parent._Rotation, new Vector3(1, 1, 1));
+            _transform = new Transform(parent.Position, parent.Rotation, new Vector3(1, 1, 1));
             _transform._gameObject = this;
             parent.SetChild(_transform);
             _SceneID = parent._gameObject._SceneID;
@@ -86,6 +87,18 @@ namespace EvllyEngine
                 _rigidBody.Update();
             }
 
+            if (_boxCollider != null)
+            {
+                _boxCollider.Update();
+            }
+
+            if (_meshCollider != null)
+            {
+                _meshCollider.Update();
+            }
+
+            //_transform.Update();
+
             if (ScriptElements != null)
             {
                 foreach (ScriptBase item in ScriptElements)
@@ -125,6 +138,11 @@ namespace EvllyEngine
                 _boxCollider.OnDestroy();
             }
 
+            if (_meshCollider != null)
+            {
+                _meshCollider.OnDestroy();
+            }
+
             if (_rigidBody != null)
             {
                 _rigidBody.OnDestroy();
@@ -143,6 +161,9 @@ namespace EvllyEngine
             _transform = null;
             _MeshRender = null;
             _camera = null;
+            _meshCollider = null;
+            _boxCollider = null;
+            _rigidBody = null;
 
             ScriptElements = null;
 
@@ -205,7 +226,6 @@ namespace EvllyEngine
             return _MeshRender;
         }
 
-
         public BoxCollider AddBoxCollider(BoxCollider boxCollider)
         {
             _boxCollider = boxCollider;
@@ -213,11 +233,22 @@ namespace EvllyEngine
         }
         public BoxCollider AddBoxCollider()
         {
-            BoxCollider boxCollider = new BoxCollider();
+            BoxCollider boxCollider = new BoxCollider(this);
             _boxCollider = boxCollider;
             return _boxCollider;
         }
 
+        public MeshCollider AddMeshCollider(MeshCollider meshCollider)
+        {
+            _meshCollider = meshCollider;
+            return _meshCollider;
+        }
+        public MeshCollider AddMeshCollider()
+        {
+            MeshCollider meshCollider = new MeshCollider(this);
+            _meshCollider = meshCollider;
+            return _meshCollider;
+        }
 
         public RigidBody AddRigidBody(RigidBody rigidBody)
         {
@@ -236,6 +267,14 @@ namespace EvllyEngine
             if (_rigidBody != null)
             {
                 return _rigidBody;
+            }
+            return null;
+        }
+        public MeshRender GetMeshRender()
+        {
+            if (_MeshRender != null)
+            {
+                return _MeshRender;
             }
             return null;
         }

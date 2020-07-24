@@ -72,3 +72,8 @@ namespace EvllyEngine
         }
     }
 }
+
+public enum ForceType : byte
+{
+    CentralForce, CentralImpulse, Torque, TorqueImpulse
+}

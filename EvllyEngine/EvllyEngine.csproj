@@ -54,6 +54,7 @@
     <Compile Include="Engine\Collada\ColladaProcessor.cs" />
     <Compile Include="Engine\Components\BoxCollider.cs" />
     <Compile Include="Engine\Components\Camera.cs" />
+    <Compile Include="Engine\Components\MeshCollider.cs" />
     <Compile Include="Engine\Components\MeshRender.cs" />
     <Compile Include="Engine\Components\RigidBody.cs" />
     <Compile Include="Engine\Components\ScriptBase.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Engine\Scene.cs" />
     <Compile Include="Engine\UIManager.cs" />
     <Compile Include="Game\Chunk.cs" />
+    <Compile Include="Game\Entity\PlayerEntity.cs" />
     <Compile Include="Game\FastNoise.cs" />
     <Compile Include="Game\ScriptTest.cs" />
     <Compile Include="Game\World.cs" />

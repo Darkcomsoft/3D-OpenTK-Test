@@ -53,11 +53,23 @@ namespace EvllyEngine
 
         public void DrawUI()
         {
-            _drawing.DrawingPrimitives.Clear();
-            _drawing.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Engine.Instance.ClientRectangle.X, Engine.Instance.ClientRectangle.Width, Engine.Instance.ClientRectangle.Y, Engine.Instance.ClientRectangle.Height, 0f, 5.0f);
-            _drawing.Print(_myFont, Text, new Vector3(Engine.Instance.Width / 2, Engine.Instance.ClientRectangle.Bottom - 25, 0), new SizeF(Engine.Instance.ClientRectangle.Width, Engine.Instance.ClientRectangle.Height), QFontAlignment.Centre, RendeTextOption);
-            _drawing.RefreshBuffers();
-            _drawing.Draw();
+            if (Engine.Instance != null)
+            {
+                if (_drawing != null)
+                {
+                    if (_myFont != null)
+                    {
+                        if (RendeTextOption != null)
+                        {
+                            _drawing.DrawingPrimitives.Clear();
+                            _drawing.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Engine.Instance.ClientRectangle.X, Engine.Instance.ClientRectangle.Width, Engine.Instance.ClientRectangle.Y, Engine.Instance.ClientRectangle.Height, 0f, 5.0f);
+                            _drawing.Print(_myFont, Text, new Vector3(Engine.Instance.Width / 2, Engine.Instance.ClientRectangle.Bottom - 25, 0), new SizeF(Engine.Instance.ClientRectangle.Width, Engine.Instance.ClientRectangle.Height), QFontAlignment.Centre, RendeTextOption);
+                            _drawing.RefreshBuffers();
+                            _drawing.Draw();
+                        }
+                    }
+                }
+            }
         }
 
         public void Dispose()

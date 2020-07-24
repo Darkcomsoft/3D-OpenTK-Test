@@ -33,7 +33,7 @@ namespace EvllyEngine
         {
             Blocks = new Block[World.ChunkSize, World.ChunkSize];
 
-            chunkPosition = gameObject._transform._Position;
+            chunkPosition = gameObject._transform.Position;
 
             System.Random rand = new System.Random();
 
@@ -85,6 +85,7 @@ namespace EvllyEngine
             //mesh.RecalculateNormals();
 
             gameObject.AddMeshRender(new MeshRender(gameObject, mesh, World.instance.Shader));
+            gameObject.AddMeshCollider();
 
             data._vertices.Clear();
             data._triangles.Clear();
@@ -103,7 +104,7 @@ namespace EvllyEngine
 
     }
 
-    public class Block
+    public struct Block
     {
         public float hight;
 
@@ -116,6 +117,7 @@ namespace EvllyEngine
 
         public Block(int _x, int _z, Vector3 chunkPosition, float _density)
         {
+            index = 0;
             x = _x;
             z = _z;
             System.Random rand = new System.Random(0 + x * z);
@@ -293,7 +295,7 @@ namespace EvllyEngine
         {
             Block block = World.instance.GetTileAt(x, z);
 
-            if (block != null)
+            if (block.Type != TypeBlock.Air)
             {
                 return block.hight;
             }

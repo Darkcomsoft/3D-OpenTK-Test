@@ -22,12 +22,16 @@ namespace EvllyEngine
             _Mass = 1;
             _Static = false;
             _Shape = new CapsuleShape(0.5f, 1);
-            rigidBodyObject = LocalCreateRigidBody(_Mass, Matrix4.CreateTranslation(gameObject._transform._Position), _Shape);
+            rigidBodyObject = LocalCreateRigidBody(_Mass, Matrix4.CreateTranslation(gameObject._transform.Position), _Shape);
+            rigidBodyObject.CollisionFlags = CollisionFlags.CharacterObject;
+            rigidBodyObject.Friction = 0.1f;
+            rigidBodyObject.SetDamping(0,0);
         }
 
         public void Update()
         {
-           
+            rigidBodyObject.Activate();
+            //rigidBodyObject.WorldTransform = gameObject._transform.RotationMatrix * rigidBodyObject.WorldTransform * Matrix4.CreateScale(gameObject._transform._Size);
         }
 
         public BulletSharp.RigidBody LocalCreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape)
@@ -44,20 +48,53 @@ namespace EvllyEngine
 
             RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
             BulletSharp.RigidBody body = new BulletSharp.RigidBody(rbInfo);
-
+            
             Physics.AddRigidBody(body);
 
             return body;
         }
 
+        /// <summary>
+        /// this is for moving the rigidbody with Physics, the rigidbody whill interact with collision
+        /// </summary>
+        /// <param name="direction"></param>
         public void Move(Vector3 direction)
+        {
+            rigidBodyObject.LinearVelocity = new Vector3(direction.X, rigidBodyObject.Gravity.Y, direction.Z);
+            rigidBodyObject.AngularFactor = Vector3.Zero;
+            rigidBodyObject.AngularVelocity = Vector3.Zero;
+            //rigidBodyObject.WorldTransform = gameObject._transform.RotationMatrix * rigidBodyObject.WorldTransform * Matrix4.CreateScale(gameObject._transform._Size);
+        }
+
+        /// <summary>
+        /// Just move the RigidBody without Physics, just translate in 3d space
+        /// </summary>
+        /// <param name="direction"></param>
+        public void MoveNoPhysics(Vector3 direction)
         {
             rigidBodyObject.Translate(direction);
         }
 
-        public void Force(Vector3 direction)
+        public void Force(Vector3 direction, ForceType forceType)
         {
-            rigidBodyObject.ApplyForce(direction, gameObject._transform._Position);
+            switch (forceType)
+            {
+                case ForceType.CentralForce:
+                    rigidBodyObject.ApplyCentralForce(direction);
+                    break;
+                case ForceType.CentralImpulse:
+                    rigidBodyObject.ApplyCentralImpulse(direction);
+                    break;
+                case ForceType.Torque:
+                    rigidBodyObject.ApplyTorque(direction);
+                    break;
+                case ForceType.TorqueImpulse:
+                    rigidBodyObject.ApplyTorqueImpulse(direction);
+                    break;
+                default:
+                    rigidBodyObject.ApplyForce(direction, gameObject._transform.Position);
+                    break;
+            }
         }
 
         public void OnDestroy()
