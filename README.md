@@ -1,3 +1,3 @@
-# EvllyEngine(ALPHA)
+# 3D-OpenTK-Test
 Simple Test With OpenTK, 3D
 
